@@ -1,0 +1,4 @@
+com\task05\pojos\Response.class
+com\task05\pojos\Request.class
+com\task05\ApiHandler.class
+com\task05\pojos\Event.class
