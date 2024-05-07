@@ -16,7 +16,7 @@ import java.util.*;
 
 @LambdaHandler(lambdaName = "uuid_generator",
 	roleName = "uuid_generator-role",
-	isPublishVersion = true,
+	isPublishVersion = false,
 	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
 )
 public class UuidGenerator implements RequestHandler<Object,String> {
