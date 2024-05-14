@@ -66,8 +66,8 @@ public class Processor implements RequestHandler<Object, Map<String, Object>> {
 			DynamoDB dynamoDB = new DynamoDB(client);
 
 			// Get DynamoDB table
-			eventsTable = dynamoDB.getTable("cmtr-9e564e24-Weather-test");
-			eventsTable2 = dynamoDB.getTable("cmtr-9e564e24-Weather");
+			eventsTable = dynamoDB.getTable("cmtr-cb6c2635-Weather-test");
+			eventsTable2 = dynamoDB.getTable("cmtr-cb6c2635-Weather");
 
 			// Generate UUID for the primary key
 			String id = UUID.randomUUID().toString();
