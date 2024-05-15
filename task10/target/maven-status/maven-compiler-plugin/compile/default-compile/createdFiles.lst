@@ -1,1 +1,5 @@
 com\task10\ApiHandler.class
+com\task10\pojos\SignInRequest.class
+com\task10\pojos\Reservation.class
+com\task10\pojos\Table.class
+com\task10\pojos\SignUpRequest.class
