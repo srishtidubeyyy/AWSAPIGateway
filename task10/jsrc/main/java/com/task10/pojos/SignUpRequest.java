@@ -1,10 +1,13 @@
 package com.task10.pojos;
 
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthRequest;
+
 public class SignUpRequest {
     private String firstName;
     private String lastName;
     private String email;
     private String password;
+
 
     public String getFirstName() {
         return firstName;

@@ -4,12 +4,10 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
 import com.syndicate.deployment.model.RetentionSetting;
-import com.task10.pojos.Reservation;
-import com.task10.pojos.SignInRequest;
-import com.task10.pojos.SignUpRequest;
-import com.task10.pojos.Table;
+import com.task10.pojos.*;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +22,7 @@ import java.util.Map;
 )
 public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 	private static final Gson gson = new Gson();
+	private final CognitoService cognitoService = new CognitoService();
 
 	public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent request, Context context) {
 		String path = request.getPath();
@@ -55,15 +54,82 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 		}
 	}
 	private APIGatewayProxyResponseEvent signUp(APIGatewayProxyRequestEvent request) {
-		// Implement sign-up logic
-		SignUpRequest signUpRequest = gson.fromJson(request.getBody(), SignUpRequest.class);
-		return null;
+		String body = request.getBody();
+		Gson gson = new Gson();
+		SignUpRequest signUpRequest = gson.fromJson(body, SignUpRequest.class);
+
+		// Validate email and password
+		if (!isValidEmail(signUpRequest.getEmail())) {
+			return badRequest("Invalid email format");
+		}
+		if (!isValidPassword(signUpRequest.getPassword())) {
+			return badRequest("Invalid password format");
+		}
+
+		// Call Cognito service to sign up user
+		try {
+			cognitoService.signUpUser(signUpRequest.getEmail(), signUpRequest.getPassword());
+			return successResponse("User signed up successfully");
+		} catch (Exception e) {
+			return serverErrorResponse("Error signing up user: " + e.getMessage());
+		}
+	}
+	private boolean isValidEmail(String email) {
+		// Implement email validation logic (e.g., using regex)
+		if (email == null || email.isEmpty()) {
+			return false;
+		}
+		// Simple email format validation using regex
+		String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+		return email.matches(emailRegex);
+	}
+
+	private boolean isValidPassword(String password) {
+		// Implement password validation logic (e.g., check length, strength)
+		if (password == null || password.length() < 12) {
+			return false;
+		}
+		// Simple password strength validation
+		// Password must be alphanumeric with at least one special character from "$%^*"
+		String passwordRegex = "^(?=.*[a-zA-Z0-9])(?=.*[$%^*])[a-zA-Z0-9$%^*]+$";
+		return password.matches(passwordRegex);
 	}
 
 	private APIGatewayProxyResponseEvent signIn(APIGatewayProxyRequestEvent request) {
-		// Implement sign-in logic
-		SignInRequest signInRequest = gson.fromJson(request.getBody(), SignInRequest.class);
-		return null;
+		String body = request.getBody();
+		Gson gson = new Gson();
+		SignInRequest signInRequest = gson.fromJson(body, SignInRequest.class);
+
+		// Call Cognito service to sign in user
+		try {
+			String accessToken = cognitoService.signInUser(signInRequest.getEmail(), signInRequest.getPassword());
+			return successResponse("User signed in successfully", accessToken);
+		} catch (Exception e) {
+			return serverErrorResponse("Error signing in user: " + e.getMessage());
+		}
+	}
+	private APIGatewayProxyResponseEvent successResponse(String message) {
+		return successResponse(message, null);
+	}
+
+	private APIGatewayProxyResponseEvent successResponse(String message, String accessToken) {
+		JsonObject responseBody = new JsonObject();
+		responseBody.addProperty("message", message);
+		if (accessToken != null) {
+			responseBody.addProperty("accessToken", accessToken);
+		}
+		return response(200, responseBody);
+	}
+	private APIGatewayProxyResponseEvent serverErrorResponse(String message) {
+		JsonObject responseBody = new JsonObject();
+		responseBody.addProperty("message", message);
+		return response(500, responseBody);
+	}
+	private APIGatewayProxyResponseEvent response(int statusCode, JsonObject responseBody) {
+		APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
+		response.setStatusCode(statusCode);
+		response.setBody(responseBody.toString());
+		return response;
 	}
 
 	private APIGatewayProxyResponseEvent getTables(APIGatewayProxyRequestEvent request) {
@@ -87,14 +153,6 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 		return new APIGatewayProxyResponseEvent().withStatusCode(200).withBody(responseBody);
 	}
 
-//	private APIGatewayProxyResponseEvent getTable(String tableId) {
-//        tableId = request.getPathParameters().get("tableId");
-//		// Implement logic to fetch table by ID
-//		// Dummy implementation for demonstration purposes
-//		Table table = new Table(Integer.parseInt(tableId), 101, 4, false, 50);
-//		String responseBody = gson.toJson(table);
-//		return new APIGatewayProxyResponseEvent().withStatusCode(200).withBody(responseBody);
-//	}
 
 	private APIGatewayProxyResponseEvent createReservation(APIGatewayProxyRequestEvent request) {
 		// Implement logic to create a reservation
@@ -124,6 +182,11 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 		response.setStatusCode(400);
 		response.setBody("Bad Request");
 		return response;
+	}
+	private APIGatewayProxyResponseEvent badRequest(String message) {
+		JsonObject responseBody = new JsonObject();
+		responseBody.addProperty("message", message);
+		return response(400, responseBody);
 	}
 
 	private APIGatewayProxyResponseEvent notFound() {

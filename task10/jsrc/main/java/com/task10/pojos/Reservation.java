@@ -5,6 +5,8 @@ public class Reservation {
     private String clientName;
     private String phoneNumber;
     private String date;
+    private String slotTimeStart;
+    private String slotTimeEnd;
 
     public int getTableNumber() {
         return tableNumber;
@@ -63,6 +65,5 @@ public class Reservation {
         this.slotTimeEnd = slotTimeEnd;
     }
 
-    private String slotTimeStart;
-    private String slotTimeEnd;
+
 }
