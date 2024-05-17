@@ -4,8 +4,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import lombok.Data;
 
 
-@Data
-@DynamoDBTable(tableName="cmtr-cb6c2635-Reservations")
+@DynamoDBTable(tableName="cmtr-cb6c2635-Reservations-test")
 public class Reservations {
     @DynamoDBHashKey
     private String id;

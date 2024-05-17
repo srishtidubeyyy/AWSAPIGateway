@@ -5,8 +5,8 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTyped;
 import lombok.Data;
 
-@Data
-@DynamoDBTable(tableName="cmtr-cb6c2635-Tables")
+
+@DynamoDBTable(tableName="cmtr-cb6c2635-Tables-test")
 public class Tables {
     @DynamoDBHashKey
     private int id;
