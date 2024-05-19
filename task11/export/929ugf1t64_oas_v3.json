@@ -185,6 +185,62 @@
         }
       }
     },
+    "/tables/{tableId}": {
+      "get": {
+        "summary": "Get Table",
+        "description": "Retrieve a specific table by ID.",
+        "parameters": [
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The details of the table.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer" },
+                    "seats": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Table not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "type": "aws_proxy",
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-central-1:196241772369:function:api_handler/invocations",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match"
+        }
+      }
+    },
     "/signin": {
       "post": {
         "summary": "Sign In",
@@ -259,10 +315,10 @@
                 "type": "object",
                 "properties": {
                   "username": { "type": "string" },
-                  "password": { "type": "string" },
-                  "email": { "type": "string" }
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
                 },
-                "required": ["username", "password", "email"]
+                "required": ["username", "email", "password"]
               }
             }
           }
@@ -275,16 +331,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": { "type": "integer" },
-                    "username": { "type": "string" },
-                    "email": { "type": "string" }
+                    "message": { "type": "string" }
                   }
                 }
               }
             }
           },
-          "409": {
-            "description": "Username already exists.",
+          "400": {
+            "description": "Invalid input.",
             "content": {
               "application/json": {
                 "schema": {
